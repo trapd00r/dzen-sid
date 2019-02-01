@@ -20,15 +20,29 @@ use Data::Dumper;
 }
 
 use Term::ExtendedColor::Dzen qw(fgd bgd);
+use Music::KNRadio::NowPlaying qw(knnp);
 use Audio::MPD;
+use File::Basename;
 
+
+my $pipe    = fgd('#484848', '|');
+
+my %bitmap = ();
+
+my $filename;
+for(glob('./bitmaps/*.xbm')) {
+  $filename = $_;
+  $_ = basename($_);
+  $_ =~ s/[.]xbm$//;
+  $bitmap{$_} = "^i($filename)";
+}
 
 output();
 
 
 sub mail {
-  return sprintf "%s%s",
-    fgd('#484848', '^i(bitmaps/envelope.xbm)'),
+  return sprintf "%s %s",
+    fgd('#d70000', $bitmap{mail}),
     $_ =()= glob("$ENV{MAILDIR}/new/*")
 }
 
@@ -48,8 +62,15 @@ sub nowplaying {
     fgd('c03ebb', $np{year}),
 }
 
+sub knradio {
+  my $kn = knnp();
+  return sprintf "%s - %s",
+    fgd('0c73c2', $kn->{artist}),
+    fgd('87af5f', $kn->{title});
+}
+
 
 
 sub output {
-  printf "%s | %s\n", mail(), nowplaying();
+  printf "$bitmap{media} %s $pipe %s $pipe %s\n", knradio(), mail(), nowplaying();
 }
